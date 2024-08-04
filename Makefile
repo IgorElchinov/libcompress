@@ -8,7 +8,7 @@ BINDIR=lib/bin
 HEADDIR=lib/headers
 FLAGS= -Wall -iquote $(HEADDIR) -g
 
-all: $(TARGET) make_dirs
+all: make_dirs $(TARGET)
 
 make_dirs:
 	mkdir -p  $(BINDIR)
