@@ -1,0 +1,5 @@
+*.txt
+*.o
+*.out
+old_Makefile
+*.so
