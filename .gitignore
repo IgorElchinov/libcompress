@@ -1,5 +1,12 @@
+# ignore .txt files and compressed files
 *.txt
+*.txt.*
+*.dec
+
+# ignore binary files
 *.o
 *.out
-old_Makefile
 *.so
+
+# ignore old version of Makefile
+old_Makefile
