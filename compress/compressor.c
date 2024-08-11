@@ -28,34 +28,48 @@ cmp_strings(char *a, char *b) {
     return 0;
 }
 
+void
+print_correct_compression_types_message(FILE *where) {
+    fprintf(where, "Correct compression types are:\n");
+    fprintf(where, "- No compression (use 'mock' or 'copy' as 3rd option)\n");
+    fprintf(where, "- Run-length encoding (use 'rle' as 3rd option)\n");
+    fprintf(where, "- Simple9 comression (use 'simple9' or 's9' as 3rd option)\n");
+    fprintf(where, "- Fibonacci compression (use 'fibonacci' or 'fib' as 3rd option)\n");
+    fflush(where);
+    return;
+}
+
 int
 main(int argc, char *argv[]) {
     CompressType compress_type = MOCK_COMPRESS;
     char dest_ext[MAX_EXT_LEN];
     if (argc > 2) {
         if (cmp_strings(argv[2], "mock\0") || cmp_strings(argv[2], "copy\0")) {
-	    memcpy(dest_ext, MOCK_EXT, MAX_EXT_LEN);
-	    compress_type = MOCK_COMPRESS;
+	        memcpy(dest_ext, MOCK_EXT, MAX_EXT_LEN);
+	        compress_type = MOCK_COMPRESS;
         } else if (cmp_strings(argv[2], "rle\0")) {
-	    memcpy(dest_ext, RLE_EXT, MAX_EXT_LEN);
-	    compress_type = RLE;
-	} else if (cmp_strings(argv[2], "simple9\0") || cmp_strings(argv[2], "s9\0")) {
-	    memcpy(dest_ext, SIMPLE9_EXT, MAX_EXT_LEN);
-	    compress_type = SIMPLE9;
-	} else if (cmp_strings(argv[2], "fibonacci\0") || cmp_strings(argv[2], "fib\0")) {
-	    memcpy(dest_ext, FIBONACCI_EXT, MAX_EXT_LEN);
+	        memcpy(dest_ext, RLE_EXT, MAX_EXT_LEN);
+	        compress_type = RLE;
+	    } else if (cmp_strings(argv[2], "simple9\0") || cmp_strings(argv[2], "s9\0")) {
+	        memcpy(dest_ext, SIMPLE9_EXT, MAX_EXT_LEN);
+	        compress_type = SIMPLE9;
+	    } else if (cmp_strings(argv[2], "fibonacci\0") || cmp_strings(argv[2], "fib\0")) {
+	        memcpy(dest_ext, FIBONACCI_EXT, MAX_EXT_LEN);
             compress_type = FIBONACCI;
         } else {
-	    fprintf(stderr, "Incorect compress type\n");
+	        fprintf(stderr, "Incorect compress type\n");
+            print_correct_compression_types_message(stderr);
+            fflush(stderr);
+            return 1;
         }
     }
     char src_file[MAX_FILENAME_LEN] = "text.txt";
-    char dest_file[MAX_FILENAME_LEN] = "text.txt";
+    char dest_file[MAX_FILENAME_LEN + MAX_EXT_LEN] = "text.txt";
     if (argc > 1) {
         size_t filename_len = strlen(argv[1]);
         if (filename_len > MAX_FILENAME_LEN) {
             fprintf(stderr, "Too big filename\n");
-            exit(1);
+            return 1;
         }
         memcpy(src_file, argv[1], filename_len);
         memcpy(dest_file, argv[1], filename_len);
