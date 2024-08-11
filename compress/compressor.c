@@ -39,8 +39,21 @@ print_correct_compression_types_message(FILE *where) {
     return;
 }
 
+size_t get_file_len(FILE *file) {
+    size_t pos = ftell(file);
+    rewind(file);
+    size_t len = 0;
+    char c = 0;
+    while ((c = getc(file)) != EOF) {
+        ++len;
+    }
+    fseek(file, pos, SEEK_SET);
+    return len;
+}
+
 int
 main(int argc, char *argv[]) {
+
     CompressType compress_type = MOCK_COMPRESS;
     char dest_ext[MAX_EXT_LEN];
     if (argc > 2) {
@@ -75,38 +88,36 @@ main(int argc, char *argv[]) {
         memcpy(dest_file, argv[1], filename_len);
         strcat(dest_file, dest_ext);	
     }
-    FILE *in, *out;
-    in = fopen(src_file, "r");
-    int n = 0;
-    char c;
-    while ((c = getc(in)) != EOF) {
-        ++n;
-    }
+
+    
+    FILE *in = fopen(src_file, "r");
+    int n = get_file_len(in);
     if (n > MAXN) {
         fprintf(stderr, "Too big file\n");
         fclose(in);
         return 1;
     }
-    rewind(in);
     char *data;
     data = calloc(n, sizeof(*data));
     for (int i = 0; i < n; ++i) {
         fscanf(in, "%c", &data[i]);
     }
+    fclose(in);
+    in = NULL;
+
     Vector_uint8 compressed;
     compressed = compress(data, n, compress_type);
+    free(data);
+    data = NULL;
     if (compressed.data == NULL) {
-        fclose(in);
-        free(data);
         return 1;
     }
-    out = fopen(dest_file, "w");
+    FILE *out = fopen(dest_file, "w");
     for (int i = 0; i < compressed.size; ++i) {
         fprintf(out, "%c", vu8_get(compressed, i));
     }
-    free(data);
     free(compressed.data);
-    fclose(in);
     fclose(out);
+    
     return 0;
 }

@@ -35,10 +35,20 @@ print_correct_compression_types_message(FILE *where) {
     return;
 }
 
+size_t get_file_len(FILE *file) {
+    size_t pos = ftell(file);
+    rewind(file);
+    size_t len = 0;
+    char c = 0;
+    while ((c = getc(file)) != EOF) {
+        ++len;
+    }
+    fseek(file, pos, SEEK_SET);
+    return len;
+}
+
 int
 main(int argc, char **argv) {
-
-    CompressType compress_type = MOCK_COMPRESS;
     
     if (argc != NUM_OF_PARAMS) {
         printf("Wrong list of parameters.\n");
@@ -48,6 +58,7 @@ main(int argc, char **argv) {
         return 1;
     }
 
+    CompressType compress_type = MOCK_COMPRESS;
     if (cmp_strings(argv[3], "mock\0") || cmp_strings(argv[3], "copy\0")) {
         compress_type = MOCK_COMPRESS;
     } else if (cmp_strings(argv[3], "rle\0")) {
@@ -83,19 +94,13 @@ main(int argc, char **argv) {
     memcpy(dest_file, argv[2], filename_len);	
     }
 
-    FILE *in, *out;
-    in = fopen(src_file, "r");
-    int n = 0;
-    char c;
-    while ((c = getc(in)) != EOF) {
-        ++n;
-    }
+    FILE *in = fopen(src_file, "r");
+    int n = get_file_len(in);
     if (n > MAXN) {
         fprintf(stderr, "Too big file\n");
         fclose(in);
         return 1;
     }
-    rewind(in);
     char *data;
     data = calloc(n, sizeof(*data));
     for (int i = 0; i < n; ++i) {
@@ -104,15 +109,14 @@ main(int argc, char **argv) {
     fclose(in);
     Vector_uint8 decompressed;
     decompressed = decompress(data, n, compress_type);
+    free(data);
     if (decompressed.data == NULL) {
-        free(data);
         return 1;
     }
-    out = fopen(dest_file, "w");
+    FILE *out = fopen(dest_file, "w");
     for (int i = 0; i < decompressed.size; ++i) {
         fprintf(out, "%c", vu8_get(decompressed, i));
     }
-    free(data);
     free(decompressed.data);
     fclose(out);
     return 0;
